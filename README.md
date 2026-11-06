@@ -15,7 +15,6 @@ Archived release: [Zenodo DOI to be added]
 3. Deletes all 1,011 genes in silico and classifies them as essential, reduced or non-essential.
 4. Compares model-essential genes with Tn-seq essentiality calls (strict and lenient definitions).
 5. Simulates pairwise inhibition of the active enzymes and scores synergy with the Bliss independence and highest single agent (HSA) models.
-6. Filters candidate targets for human homologues (BLASTp) and prepares the supplementary table.
 
 ## Repository structure
 
@@ -33,13 +32,7 @@ mtb-decaprenyl-phosphate-fba/
 │   ├── 02_gene_deletion.py
 │   ├── 03_objective_robustness.py
 │   ├── 04_tnseq_validation.py
-│   ├── 05_fetch_query_sequences.py
-│   ├── 06_pairwise_synergy.py
-│   ├── 07_human_homology_calls.py
-│   └── 08_make_table_s7.py
-├── blast/
-│   ├── queries.faa                        # protein sequences used as BLASTp queries
-│   └── blast_hits.tsv                     # BLASTp hits against human proteins
+│   └── 06_pairwise_synergy.py
 └── results/                               # output tables
 ```
 
@@ -48,7 +41,6 @@ mtb-decaprenyl-phosphate-fba/
 - Python 3.12
 - COBRApy 0.32.1
 - pandas 2.3.3
-- requests (for script 05)
 - GLPK solver (installed with COBRApy)
 
 Install the Python packages with:
@@ -73,10 +65,6 @@ python scripts/01_flux_control.py
 python scripts/02_gene_deletion.py          # about 5-15 minutes
 python scripts/03_objective_robustness.py
 python scripts/04_tnseq_validation.py
-python scripts/05_fetch_query_sequences.py  # needs internet access
-# Manual step: run BLASTp (see below), then:
-python scripts/07_human_homology_calls.py
-python scripts/08_make_table_s7.py
 
 python scripts/06_pairwise_synergy.py       # independent; can be run at any time
 ```
@@ -87,20 +75,7 @@ python scripts/06_pairwise_synergy.py       # independent; can be run at any tim
 | `02_gene_deletion.py` | model | `results/phase2_deletions.csv` |
 | `03_objective_robustness.py` | model | `results/phase3_objective_robustness.csv` |
 | `04_tnseq_validation.py` | `phase2_deletions.csv`, Tn-seq table | `results/phase4_tnseq_comparison.csv`, `results/phase4_tnseq_detail.csv` |
-| `05_fetch_query_sequences.py` | `phase4_tnseq_detail.csv` | `blast/queries.faa`, `results/phase5_query_sequences.csv` |
 | `06_pairwise_synergy.py` | model | `results/pairwise_synergy.csv` |
-| `07_human_homology_calls.py` | `queries.faa`, `blast_hits.tsv` | `results/human_homology_calls.tsv` |
-| `08_make_table_s7.py` | `phase4_tnseq_detail.csv`, `human_homology_calls.tsv` | `results/Table_S7_74genes.md` |
-
-### BLASTp step (manual)
-
-Script 05 writes `blast/queries.faa`, with one sequence per gene and the Rv identifier as the header. Search these sequences with NCBI BLASTp against *Homo sapiens* (taxon 9606), RefSeq Select proteins, with default algorithm parameters. Save the hits as `blast/blast_hits.tsv`, a tab-separated file without a header and with six columns:
-
-```
-query   subject   evalue   query_coverage   percent_identity   alignment_length
-```
-
-A gene is classified as having a human homologue when at least one hit has an E-value below 1 × 10⁻⁵ and a query coverage of at least 70%.
 
 ## Main analysis settings
 
@@ -121,12 +96,10 @@ A gene is classified as having a human homologue when at least one hit has an E-
 - 19 carrier-consuming reactions were identified; 10 were active, encoded by 14 genes.
 - 100 genes were model-essential; 74 were essential in strict Tn-seq (precision 74.0%) and 84 in the lenient set (precision 84.0%).
 - No pair was synergistic under Bliss independence (0 of 405; maximum +4.3%), whereas the HSA model called 147 of 405.
-- 45 of the 74 genes had no qualifying human homologue.
 
 ## Reproducibility notes
 
 - Results depend on the model file and on the versions of COBRApy and GLPK. Use the versions listed above.
-- Script 05 retrieves sequences from UniProt at run time. The sequences used in the paper are stored in `blast/queries.faa`.
 - Tn-seq data and the iEK1011 model are third-party resources and are subject to their own licences.
 
 ## Citation
